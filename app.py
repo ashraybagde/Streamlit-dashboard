@@ -1,11 +1,3 @@
-# ============================================================
-# Crop Yield Prediction — Decision Support Dashboard
-# Paper 2: "Beyond Regression: A Deep Learning and Explainability
-#           Framework for Crop Yield Forecasting in Maharashtra"
-#
-# Run: streamlit run app.py
-# ============================================================
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -15,7 +7,6 @@ import joblib
 import warnings
 warnings.filterwarnings('ignore')
 
-# ── Page config ────────────────────────────────────────────
 st.set_page_config(
     page_title="Crop Yield Prediction — Decision Support System",
     page_icon="🌾",
@@ -23,7 +14,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Custom CSS ─────────────────────────────────────────────
+
 st.markdown("""
 <style>
     .main-title {
@@ -63,9 +54,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================================
-# DATA — States, Crops, Seasons (from the actual dataset)
-# ============================================================
 STATES = [
     'Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh',
     'Assam', 'Bihar', 'Chandigarh', 'Chhattisgarh', 'Dadra and Nagar Haveli',
@@ -96,7 +84,6 @@ MAHARASHTRA_DISTRICTS = [
     'Thane', 'Wardha', 'Washim', 'Yavatmal'
 ]
 
-# ── Feature importance from TabNet (Paper 2 results) ──────
 TABNET_IMPORTANCE = {
     'Crop Type':     0.3405,
     'Season':        0.2342,
@@ -106,7 +93,6 @@ TABNET_IMPORTANCE = {
     'District':      0.0745,
 }
 
-# ── Model benchmark results (Papers 1 & 2) ────────────────
 BENCHMARK = pd.DataFrame([
     {"Model": "Gradient Boosting", "RMSE": 3.7187, "MAE": 1.4170, "R²": 0.8909, "Category": "Classical ML"},
     {"Model": "Decision Tree",     "RMSE": 3.7824, "MAE": 1.3614, "R²": 0.8871, "Category": "Classical ML"},
@@ -116,15 +102,6 @@ BENCHMARK = pd.DataFrame([
     {"Model": "Ridge Regression",  "RMSE":10.7554, "MAE": 5.2202, "R²": 0.0875, "Category": "Classical ML"},
     {"Model": "Linear Regression", "RMSE":10.7554, "MAE": 5.2203, "R²": 0.0875, "Category": "Classical ML"},
 ])
-
-# ============================================================
-# PREDICTION ENGINE
-# Gradient Boosting is used for prediction (best model, Paper 1)
-# We replicate the logic using a simplified heuristic since
-# the .pkl model file may not be present in all environments.
-# If gb_model.pkl exists it is loaded; otherwise a calibrated
-# lookup table is used.
-# ============================================================
 
 @st.cache_resource
 def load_model():
@@ -136,7 +113,6 @@ def load_model():
     except Exception:
         return None, None, "lookup"
 
-# Calibrated average yields (t/ha) from dataset — used as fallback
 YIELD_LOOKUP = {
     "Rice":              {"Kharif": 1.8,  "Rabi": 1.6,  "Annual": 1.7, "default": 1.8},
     "Wheat":             {"Rabi":   2.5,  "Annual": 2.4, "default": 2.5},
@@ -179,17 +155,17 @@ def predict_yield(crop, season, state, district, year, area, model_tuple):
         except Exception:
             pass
 
-    # ── Fallback lookup ────────────────────────────────────
+    
     crop_data = YIELD_LOOKUP.get(crop, {})
     base      = crop_data.get(season, crop_data.get("default", DEFAULT_YIELD))
 
-    # Year trend: slight improvement over time
+    
     year_factor = 1 + (year - 1997) * 0.008
 
-    # Maharashtra gets a small boost (historically higher inputs)
+    
     state_factor = 1.05 if state == "Maharashtra" else 1.0
 
-    # Area effect: very small farms or very large farms yield differently
+    
     area_factor = 0.95 if area < 10 else (1.02 if area > 1000 else 1.0)
 
     pred = base * year_factor * state_factor * area_factor
@@ -228,9 +204,7 @@ def advisory(crop, season, state, yield_val, area):
     return tips
 
 
-# ============================================================
-# SIDEBAR
-# ============================================================
+
 with st.sidebar:
     st.markdown("### 🌾 Input Parameters")
     st.markdown("---")
@@ -238,7 +212,7 @@ with st.sidebar:
     state = st.selectbox("State", STATES,
                          index=STATES.index("Maharashtra"))
 
-    # Show MH districts if Maharashtra selected, else generic input
+    
     if state == "Maharashtra":
         district = st.selectbox("District", MAHARASHTRA_DISTRICTS,
                                 index=MAHARASHTRA_DISTRICTS.index("Nagpur"))
@@ -266,28 +240,24 @@ with st.sidebar:
     predict_btn = st.button("🔍 Predict Yield", type="primary",
                             width="stretch")
 
-# ============================================================
-# MAIN LAYOUT
-# ============================================================
+
 st.markdown('<div class="main-title">🌾 Crop Yield Prediction — Decision Support System</div>',
             unsafe_allow_html=True)
 st.markdown('<div class="sub-title">Research Paper 2 · Department of AI & Data Science · YCCE Nagpur</div>',
             unsafe_allow_html=True)
 
-# ── Tab layout ─────────────────────────────────────────────
+
 tab1, tab2, tab3 = st.tabs([
     "🎯  Yield Prediction",
     "📊  Model Benchmark",
     "🔬  Feature Insights",
 ])
 
-# ============================================================
-# TAB 1 — PREDICTION
-# ============================================================
+
 with tab1:
     model_tuple = load_model()
 
-    if predict_btn or True:   # show layout always; update on button
+    if predict_btn or True:   
         pred, lo, hi = predict_yield(
             crop, season, state, district, year, area, model_tuple
         )
@@ -297,7 +267,6 @@ with tab1:
         col_pred, col_info = st.columns([1, 1], gap="large")
 
         with col_pred:
-            # ── Main prediction card ───────────────────────
             st.markdown(f"""
             <div class="result-box">
                 <div class="result-label">Predicted Yield</div>
@@ -307,8 +276,6 @@ with tab1:
                 <div style="font-size:1.4rem">{cat_label}</div>
             </div>
             """, unsafe_allow_html=True)
-
-            # ── Confidence range ───────────────────────────
             fig_gauge = go.Figure(go.Indicator(
                 mode  = "gauge+number+delta",
                 value = pred,
@@ -334,7 +301,6 @@ with tab1:
                        f"(±18% based on model RMSE of 3.72)")
 
         with col_info:
-            # ── Input summary ──────────────────────────────
             st.markdown("#### 📋 Input Summary")
             cols = st.columns(2)
             params = [("Crop",    crop),    ("Season",  season),
@@ -349,7 +315,7 @@ with tab1:
                              color:#1F4E79;">{val}</div>
                     </div>""", unsafe_allow_html=True)
 
-            # ── Total production estimate ──────────────────
+            
             total_prod = pred * area
             st.markdown("#### 🌾 Estimated Total Production")
             st.markdown(f"""
@@ -359,17 +325,17 @@ with tab1:
                 <div class="metric-unit">tonnes</div>
             </div>""", unsafe_allow_html=True)
 
-            # ── Advisory ───────────────────────────────────
+
             st.markdown("#### 💡 Advisory")
             for tip in tips:
                 st.markdown(f'<div class="insight-box">→ {tip}</div>',
                             unsafe_allow_html=True)
 
-    # ── Historical trend for selected crop + state ─────────
+    
     st.markdown("---")
     st.markdown("#### 📈 Yield Trend — Selected Crop & State (1997–2024)")
 
-    # Simulated trend based on lookup (replace with real data if CSV present)
+    
     base_y    = YIELD_LOOKUP.get(crop, {}).get(season,
                 YIELD_LOOKUP.get(crop, {}).get("default", DEFAULT_YIELD))
     trend_yrs = list(range(1997, 2025))
@@ -397,9 +363,7 @@ with tab1:
     st.caption("*Trend line is illustrative based on dataset averages. "
                "Your prediction (★) uses the Gradient Boosting model.*")
 
-# ============================================================
-# TAB 2 — MODEL BENCHMARK
-# ============================================================
+
 with tab2:
     st.markdown("### 📊 Complete Model Benchmark — Paper 1 + Paper 2")
     st.markdown("Seven models evaluated across two papers. "
@@ -408,7 +372,7 @@ with tab2:
     col_l, col_r = st.columns(2, gap="large")
 
     with col_l:
-        # R² bar chart
+        
         cat_color_map = {
             "Classical ML": "#95a5a6",
             "Sequence DL":  "#E74C3C",
@@ -434,7 +398,6 @@ with tab2:
         st.plotly_chart(fig_r2, width="stretch")
 
     with col_r:
-        # RMSE bar chart
         bm_rmse = BENCHMARK.sort_values("RMSE")
         fig_rmse = go.Figure(go.Bar(
             x=bm_rmse["Model"],
@@ -450,7 +413,6 @@ with tab2:
         )
         st.plotly_chart(fig_rmse, width="stretch")
 
-    # ── Full table ─────────────────────────────────────────
     st.markdown("#### 📋 Full Results Table")
     bm_display = BENCHMARK.sort_values("R²", ascending=False).copy()
     bm_display["Source"] = bm_display["Model"].apply(
@@ -460,8 +422,6 @@ with tab2:
         else "Paper 2 (ICMLDE, 2026)"
     )
     def _blue_scale(col):
-        # Manual Blues-style gradient, avoids the optional matplotlib
-        # dependency that Styler.background_gradient() needs.
         vmin, vmax = col.min(), col.max()
         rng = (vmax - vmin) or 1
         styles = []
@@ -479,13 +439,11 @@ with tab2:
     ).format({"RMSE": "{:.4f}", "MAE": "{:.4f}", "R²": "{:.4f}"}),
     width="stretch", hide_index=True)
 
-    # ── Key finding ────────────────────────────────────────
     st.info("**Key Finding:** Gradient Boosting (R²=0.8909) outperforms all "
             "deep learning architectures on this dataset. Classical ensemble "
             "methods remain superior for tabular agricultural data with limited "
             "features and short temporal horizons (≤19 years).")
 
-    # ── Training time comparison ───────────────────────────
     st.markdown("#### ⏱️ Training Time vs Performance")
     time_data = pd.DataFrame([
         {"Model": "Gradient Boosting", "Train Time (s)": 45,   "R²": 0.8909},
@@ -512,9 +470,7 @@ with tab2:
                "performance-to-compute ratio. TabNet required 665s of "
                "GPU training to achieve lower R² than LSTM.")
 
-# ============================================================
-# TAB 3 — FEATURE INSIGHTS
-# ============================================================
+
 with tab3:
     st.markdown("### 🔬 Feature Importance — Cross-Method Validation")
     st.markdown(
@@ -528,7 +484,6 @@ with tab3:
 
     with col_shap:
         st.markdown("#### Paper 1 — SHAP (Gradient Boosting)")
-        # Approximate SHAP values from Paper 1 results
         shap_data = pd.DataFrame({
             "Feature":    ["Crop Type","Area","Season",
                            "Crop Year","State","District"],
@@ -571,7 +526,7 @@ with tab3:
         )
         st.plotly_chart(fig_tab, width="stretch")
 
-    # ── Agreement table ────────────────────────────────────
+
     st.markdown("#### ✅ Feature Ranking Agreement")
     agree_df = pd.DataFrame([
         {"Feature": "Crop Type", "SHAP Rank": "1st", "TabNet Rank": "1st", "Agreement": "✅ Match"},
@@ -589,7 +544,7 @@ with tab3:
         "model-agnostic evidence for these feature priorities."
     )
 
-    # ── What this means ────────────────────────────────────
+    
     st.markdown("#### 📌 What This Means for Farmers & Policymakers")
     insights = [
         ("🌱 Crop Choice is King",
@@ -615,9 +570,7 @@ with tab3:
             <strong>{icon_title}</strong><br>{desc}
         </div>""", unsafe_allow_html=True)
 
-# ============================================================
-# FOOTER
-# ============================================================
+
 st.markdown("---")
 st.markdown(
     "<div style='text-align:center; color:#888; font-size:0.8rem;'>"
