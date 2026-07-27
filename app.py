@@ -264,7 +264,7 @@ with st.sidebar:
                 unsafe_allow_html=True)
 
     predict_btn = st.button("🔍 Predict Yield", type="primary",
-                            use_container_width=True)
+                            width="stretch")
 
 # ============================================================
 # MAIN LAYOUT
@@ -328,7 +328,7 @@ with tab1:
                 number={"suffix": " t/ha", "font": {"size": 28}},
             ))
             fig_gauge.update_layout(height=260, margin=dict(t=40,b=10,l=20,r=20))
-            st.plotly_chart(fig_gauge, use_container_width=True)
+            st.plotly_chart(fig_gauge, width="stretch")
 
             st.caption(f"Confidence range: **{lo:.2f} – {hi:.2f} t/ha** "
                        f"(±18% based on model RMSE of 3.72)")
@@ -393,7 +393,7 @@ with tab1:
         legend=dict(orientation="h", y=1.08),
         height=300, margin=dict(t=20, b=40, l=50, r=20),
     )
-    st.plotly_chart(fig_trend, use_container_width=True)
+    st.plotly_chart(fig_trend, width="stretch")
     st.caption("*Trend line is illustrative based on dataset averages. "
                "Your prediction (★) uses the Gradient Boosting model.*")
 
@@ -431,7 +431,7 @@ with tab2:
             xaxis_tickangle=-25,
             height=360, margin=dict(t=50, b=80),
         )
-        st.plotly_chart(fig_r2, use_container_width=True)
+        st.plotly_chart(fig_r2, width="stretch")
 
     with col_r:
         # RMSE bar chart
@@ -448,7 +448,7 @@ with tab2:
             xaxis_tickangle=-25,
             height=360, margin=dict(t=50, b=80),
         )
-        st.plotly_chart(fig_rmse, use_container_width=True)
+        st.plotly_chart(fig_rmse, width="stretch")
 
     # ── Full table ─────────────────────────────────────────
     st.markdown("#### 📋 Full Results Table")
@@ -459,10 +459,25 @@ with tab2:
                  "Ridge Regression","Linear Regression"]
         else "Paper 2 (ICMLDE, 2026)"
     )
-    st.dataframe(bm_display.style.background_gradient(
-        subset=["R²"], cmap="Blues"
+    def _blue_scale(col):
+        # Manual Blues-style gradient, avoids the optional matplotlib
+        # dependency that Styler.background_gradient() needs.
+        vmin, vmax = col.min(), col.max()
+        rng = (vmax - vmin) or 1
+        styles = []
+        for v in col:
+            t = (v - vmin) / rng  # 0..1
+            r = int(198 - t * (198 - 8))
+            g = int(219 - t * (219 - 48))
+            b = int(239 - t * (239 - 107))
+            text_color = "white" if t > 0.6 else "black"
+            styles.append(f"background-color: rgb({r},{g},{b}); color: {text_color}")
+        return styles
+
+    st.dataframe(bm_display.style.apply(
+        _blue_scale, subset=["R²"]
     ).format({"RMSE": "{:.4f}", "MAE": "{:.4f}", "R²": "{:.4f}"}),
-    use_container_width=True, hide_index=True)
+    width="stretch", hide_index=True)
 
     # ── Key finding ────────────────────────────────────────
     st.info("**Key Finding:** Gradient Boosting (R²=0.8909) outperforms all "
@@ -492,7 +507,7 @@ with tab2:
         height=350, margin=dict(t=50, b=40),
         showlegend=True,
     )
-    st.plotly_chart(fig_time, use_container_width=True)
+    st.plotly_chart(fig_time, width="stretch")
     st.caption("Decision Tree and Gradient Boosting achieve the best "
                "performance-to-compute ratio. TabNet required 665s of "
                "GPU training to achieve lower R² than LSTM.")
@@ -533,7 +548,7 @@ with tab3:
             xaxis_title="Mean |SHAP Value|",
             height=300, margin=dict(t=10, b=40, l=10, r=60),
         )
-        st.plotly_chart(fig_shap, use_container_width=True)
+        st.plotly_chart(fig_shap, width="stretch")
 
     with col_tab:
         st.markdown("#### Paper 2 — TabNet Attention Masks")
@@ -554,7 +569,7 @@ with tab3:
             xaxis_title="Attention-based Importance Score",
             height=300, margin=dict(t=10, b=40, l=10, r=60),
         )
-        st.plotly_chart(fig_tab, use_container_width=True)
+        st.plotly_chart(fig_tab, width="stretch")
 
     # ── Agreement table ────────────────────────────────────
     st.markdown("#### ✅ Feature Ranking Agreement")
@@ -566,7 +581,7 @@ with tab3:
         {"Feature": "Crop Year", "SHAP Rank": "4th", "TabNet Rank": "4th", "Agreement": "✅ Match"},
         {"Feature": "District",  "SHAP Rank": "6th", "TabNet Rank": "6th", "Agreement": "✅ Match"},
     ])
-    st.dataframe(agree_df, use_container_width=True, hide_index=True)
+    st.dataframe(agree_df, width="stretch", hide_index=True)
     st.success(
         "**4 out of 6 features agree in ranking** across two completely "
         "independent interpretability methods. Crop Type and District rank "
