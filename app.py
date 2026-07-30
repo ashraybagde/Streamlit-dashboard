@@ -105,7 +105,7 @@ BENCHMARK = pd.DataFrame([
 
 @st.cache_resource
 def load_model():
-    """Load GB model if available, else use lookup-table fallback."""
+
     try:
         model = joblib.load("gb_model.pkl")
         encoders = joblib.load("label_encoders.pkl")
@@ -138,7 +138,7 @@ YIELD_LOOKUP = {
 DEFAULT_YIELD = 1.2
 
 def predict_yield(crop, season, state, district, year, area, model_tuple):
-    """Return predicted yield (t/ha) and confidence interval."""
+
     gb_model, encoders, mode = model_tuple
 
     if mode == "model":
@@ -181,7 +181,7 @@ def yield_category(y):
 
 
 def advisory(crop, season, state, yield_val, area):
-    """Generate plain-English advisory text."""
+
     cat, _ = yield_category(yield_val)
     tips = []
 
