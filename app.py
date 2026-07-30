@@ -210,7 +210,7 @@ with st.sidebar:
     st.markdown("---")
 
     state = st.selectbox("State", STATES,
-                         index=STATES.index("Maharashtra"))
+                         index=STATES.index("Maharashtra"),disabled=True)
 
     
     if state == "Maharashtra":
