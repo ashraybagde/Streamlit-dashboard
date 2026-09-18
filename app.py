@@ -243,7 +243,7 @@ with st.sidebar:
 
 st.markdown('<div class="main-title">🌾 Crop Yield Prediction — Decision Support System</div>',
             unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Research Paper 2 · Department of AI & Data Science · YCCE Nagpur</div>',
+st.markdown('<div class="sub-title">Ashray Bagde· Department of AI & Data Science · YCCE Nagpur</div>',
             unsafe_allow_html=True)
 
 
@@ -365,7 +365,7 @@ with tab1:
 
 
 with tab2:
-    st.markdown("### 📊 Complete Model Benchmark — Paper 1 + Paper 2")
+    st.markdown("### 📊 Complete Model Benchmark ")
     st.markdown("Seven models evaluated across two papers. "
                 "Gradient Boosting is deployed in this dashboard.")
 
@@ -474,8 +474,8 @@ with tab2:
 with tab3:
     st.markdown("### 🔬 Feature Importance — Cross-Method Validation")
     st.markdown(
-        "A key finding of this study: **SHAP values** (applied to Gradient "
-        "Boosting in Paper 1) and **TabNet attention masks** (Paper 2) "
+        "A key finding of this study: **SHAP values**"
+        "and **TabNet attention masks** "
         "independently agree on feature rankings — providing model-agnostic "
         "evidence for the importance of Crop Type and Season."
     )
@@ -483,7 +483,7 @@ with tab3:
     col_shap, col_tab = st.columns(2, gap="large")
 
     with col_shap:
-        st.markdown("#### Paper 1 — SHAP (Gradient Boosting)")
+        st.markdown("#### SHAP (Gradient Boosting)")
         shap_data = pd.DataFrame({
             "Feature":    ["Crop Type","Area","Season",
                            "Crop Year","State","District"],
@@ -506,7 +506,7 @@ with tab3:
         st.plotly_chart(fig_shap, width="stretch")
 
     with col_tab:
-        st.markdown("#### Paper 2 — TabNet Attention Masks")
+        st.markdown("#### TabNet Attention Masks")
         tab_data = pd.DataFrame(TABNET_IMPORTANCE.items(),
                                 columns=["Feature","Importance"]
                                 ).sort_values("Importance", ascending=True)
