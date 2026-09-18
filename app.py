@@ -475,7 +475,7 @@ with tab3:
     st.markdown("### 🔬 Feature Importance — Cross-Method Validation")
     st.markdown(
         "A key finding of this study: **SHAP values**"
-        "and **TabNet attention masks** "
+        " and **TabNet attention masks** "
         "independently agree on feature rankings — providing model-agnostic "
         "evidence for the importance of Crop Type and Season."
     )
